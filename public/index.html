@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#087f7a">
+  <meta name="description" content="Control de inventario y ventas del Consejo Estatal de Bordadoras de Yucatán">
+  <title>Tienda del Consejo Estatal de Bordadoras</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <div id="loadingView" class="screen-center">
+    <div class="loader" aria-hidden="true"></div>
+    <p>Preparando la aplicación…</p>
+  </div>
+
+  <main id="authView" class="auth-layout hidden">
+    <section class="auth-brand">
+      <div class="brand-mark" aria-hidden="true">CEB</div>
+      <p class="eyebrow">Consejo Estatal de Bordadoras de Yucatán</p>
+      <h1>Control de inventario y ventas</h1>
+      <p>Registra productos, ventas y comisiones desde una sola aplicación.</p>
+    </section>
+
+    <section class="auth-card" id="loginPanel">
+      <h2>Ingresar</h2>
+      <p class="muted">Escribe tu usuario y tu NIP o contraseña.</p>
+      <form id="loginForm" class="form-stack">
+        <label>
+          Usuario
+          <input id="loginUsername" name="username" autocomplete="username" maxlength="40" required>
+        </label>
+        <label>
+          NIP o contraseña
+          <input id="loginPin" name="pin" type="password" autocomplete="current-password" minlength="4" maxlength="64" required>
+        </label>
+        <button class="button primary full" type="submit">Ingresar</button>
+      </form>
+    </section>
+
+    <section class="auth-card hidden" id="setupPanel">
+      <h2>Configuración inicial</h2>
+      <p class="muted">La rama de datos todavía no contiene los archivos CSV. Este formulario los creará con los catálogos y usuarias iniciales.</p>
+      <form id="setupForm" class="form-stack">
+        <label>
+          Clave de configuración
+          <input id="setupKey" name="setup_key" type="password" autocomplete="off" required>
+        </label>
+        <label>
+          Nombre de la administradora
+          <input id="setupAdminName" name="admin_name" value="Administradora" maxlength="160" required>
+        </label>
+        <label>
+          Usuario administrador
+          <input id="setupAdminUsername" name="admin_username" value="ADM" maxlength="40" required>
+        </label>
+        <label>
+          NIP administrador
+          <input id="setupAdminPin" name="admin_pin" type="password" value="9876" minlength="4" maxlength="64" required>
+        </label>
+        <button class="button primary full" type="submit">Crear archivos iniciales</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="appView" class="app-shell hidden">
+    <header class="topbar">
+      <div class="brand-inline">
+        <div class="brand-mark small" aria-hidden="true">CEB</div>
+        <div>
+          <strong id="appStoreName">Tienda del Consejo</strong>
+          <span>Inventario y ventas</span>
+        </div>
+      </div>
+      <div class="user-menu">
+        <div class="user-copy">
+          <strong id="currentUserName"></strong>
+          <span id="currentUserRole"></span>
+        </div>
+        <button id="logoutButton" class="button ghost compact" type="button">Salir</button>
+      </div>
+    </header>
+
+    <nav class="main-nav" aria-label="Secciones principales">
+      <button class="nav-button active" data-section="dashboard" type="button">Resumen</button>
+      <button class="nav-button" data-section="inventory" type="button">Inventario</button>
+      <button class="nav-button" data-section="register-sale" type="button">Registrar venta</button>
+      <button class="nav-button" data-section="sales-history" type="button">Ventas</button>
+      <button class="nav-button admin-only" data-section="admin" type="button">Administración</button>
+    </nav>
+
+    <main class="content">
+      <section id="section-dashboard" class="page-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Vista general</p>
+            <h2>Resumen de la tienda</h2>
+          </div>
+          <button id="refreshButton" class="button secondary" type="button">Actualizar datos</button>
+        </div>
+        <div id="summaryCards" class="summary-grid"></div>
+        <div class="panel">
+          <div class="panel-heading">
+            <h3>Ventas recientes</h3>
+          </div>
+          <div id="recentSales" class="recent-list empty-state">Todavía no hay ventas registradas.</div>
+        </div>
+      </section>
+
+      <section id="section-inventory" class="page-section hidden">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Productos</p>
+            <h2>Inventario</h2>
+          </div>
+          <button id="addProductButton" class="button primary" type="button">Agregar producto</button>
+        </div>
+        <div class="filters panel compact-panel">
+          <label>
+            Buscar
+            <input id="productSearch" type="search" placeholder="ID, producto o bordadora">
+          </label>
+          <label>
+            Estado
+            <select id="productStatusFilter">
+              <option value="">Todos</option>
+              <option value="available">Disponible</option>
+              <option value="sold">Vendido</option>
+              <option value="deleted" class="admin-only">Eliminado</option>
+            </select>
+          </label>
+          <label>
+            Categoría
+            <select id="productCategoryFilter"><option value="">Todas</option></select>
+          </label>
+          <label class="admin-only checkbox-line filter-checkbox">
+            <input id="myProductsFilter" type="checkbox">
+            Solo mis productos
+          </label>
+        </div>
+        <div class="table-wrap panel">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Bordadora</th>
+                <th>Categoría</th>
+                <th>Talla</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody"></tbody>
+          </table>
+          <p id="productsEmpty" class="empty-state hidden">No se encontraron productos.</p>
+        </div>
+      </section>
+
+      <section id="section-register-sale" class="page-section hidden">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Caja</p>
+            <h2>Registrar una venta</h2>
+          </div>
+        </div>
+        <div class="two-column">
+          <form id="saleForm" class="panel form-grid">
+            <label class="span-2">
+              Buscar producto disponible
+              <input id="saleProductSearch" type="search" placeholder="Escribe el ID o nombre del producto">
+            </label>
+            <label class="span-2">
+              Producto
+              <select id="saleProductId" name="product_id" required>
+                <option value="">Selecciona un producto</option>
+              </select>
+            </label>
+            <label>
+              Descuento (%)
+              <input id="saleDiscount" name="discount_percent" type="number" min="0" max="100" step="0.01" value="0">
+            </label>
+            <label>
+              Cargo extra (%)
+              <input id="saleExtra" name="extra_percent" type="number" min="0" max="100" step="0.01" value="0">
+            </label>
+            <label class="span-2">
+              Método de pago
+              <select id="salePaymentMethod" name="payment_method_id" required>
+                <option value="">Selecciona un método</option>
+              </select>
+            </label>
+            <label class="span-2">
+              Anotaciones
+              <textarea id="saleNotes" name="notes" rows="3" maxlength="2000"></textarea>
+            </label>
+            <div class="span-2 form-actions">
+              <button id="registerSaleButton" class="button primary" type="submit">Confirmar venta</button>
+            </div>
+          </form>
+
+          <aside class="panel calculation-panel" aria-live="polite">
+            <h3>Desglose</h3>
+            <dl id="saleCalculation" class="calculation-list">
+              <div><dt>Precio registrado</dt><dd id="calcBase">$0.00</dd></div>
+              <div><dt>Descuento</dt><dd id="calcDiscount">− $0.00</dd></div>
+              <div><dt>Cargo extra</dt><dd id="calcExtra">+ $0.00</dd></div>
+              <div class="total"><dt>Precio ajustado</dt><dd id="calcAdjusted">$0.00</dd></div>
+              <div><dt id="calcCommissionLabel">Comisión de tienda</dt><dd id="calcCommission">− $0.00</dd></div>
+              <div><dt id="calcCardLabel">Comisión de tarjeta</dt><dd id="calcCard">− $0.00</dd></div>
+              <div><dt id="calcCardTaxLabel">16% sobre comisión bancaria</dt><dd id="calcCardTax">− $0.00</dd></div>
+              <div class="grand-total"><dt>Neto para la bordadora</dt><dd id="calcNet">$0.00</dd></div>
+            </dl>
+            <p class="help-text">Los importes definitivos se vuelven a calcular y validar en el servidor al guardar.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section id="section-sales-history" class="page-section hidden">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Historial</p>
+            <h2>Ventas registradas</h2>
+          </div>
+        </div>
+        <div class="filters panel compact-panel">
+          <label>
+            Buscar
+            <input id="saleSearch" type="search" placeholder="Venta, producto o bordadora">
+          </label>
+          <label>
+            Desde
+            <input id="saleDateFrom" type="date">
+          </label>
+          <label>
+            Hasta
+            <input id="saleDateTo" type="date">
+          </label>
+          <label class="admin-only">
+            Estado
+            <select id="saleStatusFilter">
+              <option value="">Todos</option>
+              <option value="completed">Completada</option>
+              <option value="cancelled">Cancelada</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-wrap panel">
+          <table>
+            <thead>
+              <tr>
+                <th>Venta</th>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Registró</th>
+                <th>Método</th>
+                <th>Total cobrado</th>
+                <th>Comisión tienda</th>
+                <th>Neto bordadora</th>
+                <th>Estado</th>
+                <th class="admin-only">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="salesTableBody"></tbody>
+          </table>
+          <p id="salesEmpty" class="empty-state hidden">No se encontraron ventas.</p>
+        </div>
+      </section>
+
+      <section id="section-admin" class="page-section hidden admin-only">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Configuración</p>
+            <h2>Administración</h2>
+          </div>
+        </div>
+        <div class="subnav" role="tablist">
+          <button class="subnav-button active" data-admin-panel="users" type="button">Vendedoras</button>
+          <button class="subnav-button" data-admin-panel="catalogs" type="button">Catálogos</button>
+          <button class="subnav-button" data-admin-panel="settings" type="button">Porcentajes y ajustes</button>
+          <button class="subnav-button" data-admin-panel="account" type="button">Mi cuenta</button>
+        </div>
+
+        <div id="admin-users" class="admin-panel">
+          <div class="panel-heading actions-heading">
+            <div>
+              <h3>Vendedoras</h3>
+              <p class="muted">Solo la administradora puede crear o modificar estas cuentas.</p>
+            </div>
+            <button id="addUserButton" class="button primary" type="button">Agregar vendedora</button>
+          </div>
+          <div class="table-wrap panel">
+            <table>
+              <thead><tr><th>Nombre</th><th>Usuario</th><th>Iniciales</th><th>Municipio</th><th>Localidad</th><th>Estado</th><th>Acciones</th></tr></thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="admin-catalogs" class="admin-panel hidden">
+          <div class="panel-heading actions-heading">
+            <div>
+              <h3>Catálogos</h3>
+              <p class="muted">Los elementos desactivados permanecen en los registros históricos.</p>
+            </div>
+            <button id="addCatalogButton" class="button primary" type="button">Agregar elemento</button>
+          </div>
+          <div class="panel compact-panel">
+            <label>
+              Catálogo a editar
+              <select id="catalogTypeSelect">
+                <option value="categories">Categorías</option>
+                <option value="subcategories">Subcategorías</option>
+                <option value="sizes">Tallas</option>
+                <option value="payment_methods">Métodos de pago</option>
+                <option value="locations">Municipios y localidades</option>
+              </select>
+            </label>
+          </div>
+          <div class="table-wrap panel">
+            <table>
+              <thead id="catalogTableHead"></thead>
+              <tbody id="catalogTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="admin-settings" class="admin-panel hidden">
+          <form id="settingsForm" class="panel form-grid narrow-form">
+            <label class="span-2">
+              Nombre de la tienda
+              <input id="settingStoreName" name="store_name" maxlength="180" required>
+            </label>
+            <label>
+              Comisión bancaria (%)
+              <input id="settingCardFee" name="card_fee_percent" type="number" min="0" max="100" step="0.0001" required>
+            </label>
+            <label>
+              Porcentaje adicional sobre la comisión bancaria (%)
+              <input id="settingCardTax" name="card_fee_tax_percent" type="number" min="0" max="100" step="0.0001" required>
+            </label>
+            <label>
+              Moneda
+              <input id="settingCurrency" name="currency" minlength="3" maxlength="3" required>
+            </label>
+            <label>
+              Zona horaria
+              <input id="settingTimezone" name="timezone" maxlength="80" required>
+            </label>
+            <div class="span-2 callout">
+              La comisión de la tienda se modifica directamente en el catálogo de categorías. El cargo bancario se aplica únicamente a los métodos de pago marcados para ello.
+            </div>
+            <div class="span-2 form-actions">
+              <button class="button primary" type="submit">Guardar ajustes</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="admin-account" class="admin-panel hidden">
+          <form id="accountForm" class="panel form-grid narrow-form">
+            <label class="span-2">
+              Nombre
+              <input id="accountName" name="name" maxlength="160" required>
+            </label>
+            <label>
+              Usuario
+              <input id="accountUsername" name="username" maxlength="40" required>
+            </label>
+            <label>
+              Nuevo NIP o contraseña
+              <input id="accountPin" name="pin" type="password" minlength="4" maxlength="64" placeholder="Déjalo vacío para conservarlo">
+            </label>
+            <div class="span-2 form-actions">
+              <button class="button primary" type="submit">Actualizar mi cuenta</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="productDialog" class="dialog">
+    <form id="productForm" class="dialog-card">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Inventario</p><h2 id="productDialogTitle">Agregar producto</h2></div>
+        <button class="icon-button" data-close-dialog="productDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <input id="productEditId" type="hidden">
+      <div class="form-grid">
+        <label class="span-2">Nombre del producto<input id="productName" required maxlength="160"></label>
+        <label class="span-2">Descripción<textarea id="productDescription" rows="3" maxlength="2000"></textarea></label>
+        <label id="productOwnerField" class="span-2 admin-only">Bordadora responsable<select id="productOwner" required></select></label>
+        <label>Categoría<select id="productCategory" required></select></label>
+        <label>Subcategoría<select id="productSubcategory" required></select></label>
+        <label>Talla<select id="productSize" required></select></label>
+        <label>Precio de venta<input id="productPrice" type="number" min="0.01" step="0.01" required></label>
+        <label class="span-2">Anotaciones<textarea id="productNotes" rows="3" maxlength="2000"></textarea></label>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" data-close-dialog="productDialog" type="button">Cancelar</button>
+        <button class="button primary" type="submit">Guardar producto</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="userDialog" class="dialog">
+    <form id="userForm" class="dialog-card wide-dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Usuarios</p><h2 id="userDialogTitle">Agregar vendedora</h2></div>
+        <button class="icon-button" data-close-dialog="userDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <input id="userEditId" type="hidden">
+      <div class="form-grid">
+        <label class="span-2">Nombre<input id="userName" maxlength="160" required></label>
+        <label>Iniciales<input id="userInitials" maxlength="8" required></label>
+        <label>Usuario<input id="userUsername" maxlength="40" required></label>
+        <label id="userPinField" class="span-2">NIP inicial<input id="userPin" type="password" minlength="4" maxlength="64" value="1234"></label>
+        <label>Municipio<select id="userMunicipio"><option value="">Sin especificar</option></select></label>
+        <label>Localidad<select id="userLocalidad"><option value="">Sin especificar</option></select></label>
+        <label>Teléfono<input id="userPhone" maxlength="40" inputmode="tel"></label>
+        <label>Correo<input id="userEmail" type="email" maxlength="160"></label>
+        <label class="span-2">Colectivo<input id="userCollective" maxlength="160"></label>
+        <label class="span-2">Observaciones<textarea id="userObservations" rows="3" maxlength="2000"></textarea></label>
+        <label id="userActiveField" class="span-2 checkbox-line hidden"><input id="userActive" type="checkbox"> Cuenta activa</label>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" data-close-dialog="userDialog" type="button">Cancelar</button>
+        <button class="button primary" type="submit">Guardar vendedora</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="resetPinDialog" class="dialog">
+    <form id="resetPinForm" class="dialog-card small-dialog">
+      <div class="dialog-heading"><h2>Restablecer NIP</h2><button class="icon-button" data-close-dialog="resetPinDialog" type="button" aria-label="Cerrar">×</button></div>
+      <input id="resetPinUserId" type="hidden">
+      <p id="resetPinUserName" class="muted"></p>
+      <label>Nuevo NIP o contraseña<input id="resetPinValue" type="password" minlength="4" maxlength="64" required></label>
+      <div class="dialog-actions"><button class="button ghost" data-close-dialog="resetPinDialog" type="button">Cancelar</button><button class="button primary" type="submit">Restablecer</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="catalogDialog" class="dialog">
+    <form id="catalogForm" class="dialog-card">
+      <div class="dialog-heading"><div><p class="eyebrow">Catálogos</p><h2 id="catalogDialogTitle">Agregar elemento</h2></div><button class="icon-button" data-close-dialog="catalogDialog" type="button" aria-label="Cerrar">×</button></div>
+      <input id="catalogEditId" type="hidden">
+      <div id="catalogFields" class="form-grid"></div>
+      <div class="dialog-actions"><button class="button ghost" data-close-dialog="catalogDialog" type="button">Cancelar</button><button class="button primary" type="submit">Guardar elemento</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="saleEditDialog" class="dialog">
+    <form id="saleEditForm" class="dialog-card">
+      <div class="dialog-heading"><div><p class="eyebrow">Ventas</p><h2>Editar venta</h2></div><button class="icon-button" data-close-dialog="saleEditDialog" type="button" aria-label="Cerrar">×</button></div>
+      <input id="saleEditId" type="hidden">
+      <div class="form-grid">
+        <label class="span-2">Producto<select id="saleEditProduct" required></select></label>
+        <label>Descuento (%)<input id="saleEditDiscount" type="number" min="0" max="100" step="0.01"></label>
+        <label>Cargo extra (%)<input id="saleEditExtra" type="number" min="0" max="100" step="0.01"></label>
+        <label class="span-2">Método de pago<select id="saleEditPayment" required></select></label>
+        <label class="span-2">Anotaciones<textarea id="saleEditNotes" rows="3" maxlength="2000"></textarea></label>
+      </div>
+      <div class="dialog-actions"><button class="button ghost" data-close-dialog="saleEditDialog" type="button">Cancelar</button><button class="button primary" type="submit">Guardar cambios</button></div>
+    </form>
+  </dialog>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

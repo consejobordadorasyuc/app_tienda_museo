@@ -1,0 +1,23 @@
+# Lista de verificación de despliegue
+
+- [ ] Repositorio privado creado.
+- [ ] Código subido a `main`.
+- [ ] Token fine-grained restringido al repositorio y con `Contents: Read and write`.
+- [ ] Proyecto de Cloudflare Pages conectado a `main`.
+- [ ] Directorio de salida configurado como `public`.
+- [ ] `GITHUB_OWNER` configurado.
+- [ ] `GITHUB_REPO` configurado.
+- [ ] `GITHUB_DATA_BRANCH=data` configurado.
+- [ ] `GITHUB_BASE_BRANCH=main` configurado.
+- [ ] `GITHUB_TOKEN` guardado como secreto.
+- [ ] `AUTH_SECRET` guardado como secreto.
+- [ ] `AUTH_PEPPER` guardado como secreto distinto.
+- [ ] `SETUP_KEY` guardado como secreto distinto.
+- [ ] Nuevo despliegue ejecutado después de configurar secretos.
+- [ ] Configuración inicial realizada desde la aplicación.
+- [ ] Inicio de sesión con la administradora probado.
+- [ ] NIP inicial de una vendedora probado.
+- [ ] Producto de prueba registrado.
+- [ ] Venta de prueba registrada y cancelada.
+- [ ] Rama `data` excluida de despliegues de vista previa.
+- [ ] Copia de seguridad inicial descargada.

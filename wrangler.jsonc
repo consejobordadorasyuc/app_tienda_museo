@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "consejo-bordadoras-tienda",
+  "compatibility_date": "2026-07-07",
+  "pages_build_output_dir": "./public",
+  "vars": {
+    "GITHUB_DATA_BRANCH": "data",
+    "GITHUB_BASE_BRANCH": "main",
+    "SESSION_HOURS": "8"
+  }
+}

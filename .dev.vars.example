@@ -1,0 +1,10 @@
+# Copia este archivo como .dev.vars para desarrollo local.
+GITHUB_OWNER="tu-usuario-u-organizacion"
+GITHUB_REPO="nombre-del-repositorio"
+GITHUB_TOKEN="github_pat_..."
+GITHUB_DATA_BRANCH="data"
+GITHUB_BASE_BRANCH="main"
+AUTH_SECRET="genera-un-secreto-largo-y-aleatorio"
+AUTH_PEPPER="genera-otro-secreto-largo-y-aleatorio"
+SETUP_KEY="clave-larga-para-la-configuracion-inicial"
+SESSION_HOURS="8"
