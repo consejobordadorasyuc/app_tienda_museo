@@ -1,0 +1,5 @@
+id,name,code,card_fee_applies,active,sort_order,created_at,updated_at
+PAY-EFE,Efectivo,EFE,false,true,1,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z
+PAY-TRA,Transferencia,TRA,false,true,2,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z
+PAY-TCR,Tarjeta de crédito,TCR,true,true,3,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z
+PAY-TDE,Tarjeta de débito,TDE,false,true,4,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z

@@ -1,0 +1,4 @@
+id,name,code,commission_percent,active,sort_order,created_at,updated_at
+CAT-ADU,Prendas de adulto,ADU,30,true,1,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z
+CAT-NIN,Prendas de niña o niño,NIN,20,true,2,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z
+CAT-ACC,Accesorios,ACC,10,true,3,2026-07-08T01:57:23.812Z,2026-07-08T01:57:23.812Z
